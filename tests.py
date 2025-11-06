@@ -78,14 +78,14 @@ matcher_ratio = features.RatioFeatureMatcher()
 # TODO7 - SSD matching
 # ------------------------------
 # Step 1. SSD matcher를 이용해 두 이미지의 MOPS 디스크립터 매칭을 수행하시오.
-matches_ssd = matcher_ssd.__________(__________, __________)
+matches_ssd = matcher_ssd.matchFeatures(desc_mops_1, desc_mops_2)
 
 # Step 2. 거리(distance)를 기준으로 정렬하여 상위 150개의 매칭만 선택하시오.
-matches_ssd = sorted(matches_ssd, key=lambda x: x.__________)[:150]
+matches_ssd = sorted(matches_ssd, key=lambda x: x.distance)[:150]
 
 # Step 3. 매칭 결과를 시각화하여 PNG로 저장하시오.
 ssd_vis = cv2.drawMatches(
-    img1, d1, img2, d2, ________, None,
+    img1, d1, img2, d2, matches_ssd, None, # matches_ssd
     matchColor=(0,255,0), singlePointColor=(255,0,0),
     flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
 )
@@ -96,14 +96,14 @@ print("✅ TODO7 (SSD) match result saved → results/TODO7_SSD_matches.png")
 # TODO8 - Ratio matching
 # ------------------------------
 # Step 1. Ratio matcher를 이용해 두 이미지의 MOPS 디스크립터 매칭을 수행하시오.
-matches_ratio = matcher_ratio.__________(__________, __________)
+matches_ratio = matcher_ratio.matchFeatures(desc_mops_1, desc_mops_2)
 
 # Step 2. distance를 기준으로 정렬하여 상위 150개의 매칭만 선택하시오.
-matches_ratio = sorted(matches_ratio, key=lambda x: x.__________)[:150]
+matches_ratio = sorted(matches_ratio, key=lambda x: x.distance)[:150]
 
 # Step 3. 매칭 결과를 시각화하여 PNG로 저장하시오.
 ratio_vis = cv2.drawMatches(
-    img1, d1, img2, d2, ________, None,
+    img1, d1, img2, d2, matches_ratio, None,
     matchColor=(0,255,0), singlePointColor=(255,0,0),
     flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
 )
@@ -111,3 +111,12 @@ cv2.imwrite("results/TODO8_Ratio_matches.png", ratio_vis)
 print("✅ TODO8 (Ratio) match result saved → results/TODO8_Ratio_matches.png")
 
 print("🎯 All TODO1–8 visualizations done! Files saved in 'results/'")
+
+'''
+8단계 매칭이 잘 된 이유
+두 단계의 차이는 features.py의 SSDFeatureMatcher, RatioFeatureMatcher 클래스의 for문에서 차이가 발생한다.
+SSDFeatureMatcher의 경우에 min_dist = np.argmin(dist[i]) 에서 가장 가까운 1개의 이웃만을 찾는다.
+그렇기에 비슷한 특징이 여러 개인 경우의 매치(애매한 매치)에 강건하지 못하다.
+RatioFeatureMatcher의 경우, match.distance = SSD1 / (SSD2 * 1.0) 여기에서 가장 가까운 이웃과 두 번째로 가까운 이웃 사이의 비율을 설정한다.
+이를 통해 가장 좋은 매치가 두 번째로 좋은 매치보다 가깝다면 ratio 값이 줄어들기에 이를 threshold 값으로 걸러내어 애매한 매치에 강건하게 만들 수 있다.
+'''
